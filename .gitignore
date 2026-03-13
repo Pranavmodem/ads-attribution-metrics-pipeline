@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+
+# Environment
+.env
+*.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Data (keep structure, ignore actual data files)
+data/raw/*.parquet
+data/raw/*.csv
+data/raw/*.json
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# dbt
+target/
+dbt_packages/
+logs/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Airflow
+airflow.db
+airflow.cfg
+webserver_config.py
