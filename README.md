@@ -127,15 +127,32 @@ The data-driven models operate on user journey sequences (e.g., `Display → Soc
 
 ## Dashboard
 
-The Streamlit dashboard provides 5 interactive pages:
+Built with a [Linear-inspired dark theme](https://getdesign.md/linear.app/design-md) — near-black canvas (`#08090a`), indigo-violet accents (`#7170ff`), semi-transparent borders, and luminance-based depth.
 
-| Page | What It Shows |
-|------|---------------|
-| **Executive Overview** | 8 KPI cards (impressions, clicks, conversions, revenue, CTR, CVR, ROAS, CPA), daily trend charts, channel/device/geo breakdowns |
-| **Attribution Analysis** | Side-by-side 7-model comparison bar chart, attribution heatmap, heuristic vs. data-driven pie charts, divergence analysis showing where models disagree |
-| **Campaign Performance** | ROAS vs. spend scatter plot, channel ROAS bars, per-campaign metrics table, spend efficiency matrix (CPA vs. CVR) |
-| **Channel & Journeys** | Per-channel funnel (impressions → clicks → conversions), daily trends by channel, hourly activity patterns, conversion type breakdown |
-| **Data Quality** | Column completeness bars, daily volume anomaly detection (z-score), bid/revenue distributions, dataset summary |
+### Executive Overview
+KPI cards, daily trends, channel/device/geo breakdowns.
+
+![Executive Overview](docs/screenshots/01_executive_overview.png)
+
+### Attribution Analysis
+7-model comparison, heatmap, heuristic vs data-driven divergence.
+
+![Attribution Analysis](docs/screenshots/02_attribution_analysis.png)
+
+### Campaign Performance
+ROAS vs spend scatter, channel ROAS, per-campaign metrics table.
+
+![Campaign Performance](docs/screenshots/03_campaign_performance.png)
+
+### Channel & Journeys
+Per-channel funnel, daily trends, hourly patterns, conversion types.
+
+![Channel & Journeys](docs/screenshots/04_channel_journeys.png)
+
+### Data Quality
+Completeness bars, anomaly detection (z-score), distributions.
+
+![Data Quality](docs/screenshots/05_data_quality.png)
 
 All pages support interactive date range filtering via the sidebar.
 
