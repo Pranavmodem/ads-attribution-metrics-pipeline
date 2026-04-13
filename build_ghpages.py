@@ -297,7 +297,7 @@ def main():
     <div id="root"></div>
     <script>
         stlite.mount({{
-            requirements: ["plotly", "numpy"],
+            requirements: ["pandas", "plotly", "numpy"],
             entrypoint: "dashboards/app.py",
             files: {{
 {files_block}
