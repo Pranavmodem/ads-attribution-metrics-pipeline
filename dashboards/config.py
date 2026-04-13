@@ -70,50 +70,48 @@ PLOTLY_LAYOUT = dict(
 )
 
 
-# ─── Custom CSS ──────────────────────────────────────────────────
+# ─── Custom CSS (Linear DESIGN.md strict) ───────────────────────
 CUSTOM_CSS = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 
-    /* ── Global ── */
+    /* ── Global: Inter + cv01/ss03 + #08090a canvas ── */
+    *, *::before, *::after {
+        font-feature-settings: "cv01", "ss03";
+    }
     .stApp {
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        font-family: 'Inter', SF Pro Display, -apple-system, system-ui, Segoe UI, Roboto, sans-serif;
         background-color: #08090a;
         color: #f7f8f8;
+        font-weight: 400;
+        font-size: 15px;
+        line-height: 1.6;
+        letter-spacing: -0.165px;
     }
     .stApp > header { background-color: #08090a; }
     .main .block-container { padding-top: 2rem; max-width: 1200px; }
 
-    /* ── Sidebar (Panel Dark) ── */
+    /* ── Sidebar: #0f1011 panel ── */
     section[data-testid="stSidebar"] {
         background-color: #0f1011;
         border-right: 1px solid rgba(255,255,255,0.05);
-        padding-top: 0;
     }
-    section[data-testid="stSidebar"] > div:first-child {
-        padding-top: 1.5rem;
-    }
-    section[data-testid="stSidebar"] * {
-        color: #8a8f98 !important;
-    }
-    section[data-testid="stSidebar"] h1,
-    section[data-testid="stSidebar"] h2,
-    section[data-testid="stSidebar"] h3 {
-        color: #f7f8f8 !important;
-    }
+    section[data-testid="stSidebar"] > div:first-child { padding-top: 1.5rem; }
+    section[data-testid="stSidebar"] * { color: #8a8f98 !important; }
 
-    /* Nav items — clean pill style */
+    /* Nav: 13px weight 510 (approx 500), pill hover */
     section[data-testid="stSidebar"] .stRadio > div {
         gap: 2px !important;
         background: transparent !important;
         border: none !important;
     }
     section[data-testid="stSidebar"] .stRadio > div > label {
-        color: #8a8f98 !important;
+        color: #d0d6e0 !important;
         font-size: 13px;
-        font-weight: 500;
-        letter-spacing: -0.01em;
-        padding: 8px 12px !important;
+        font-weight: 510;
+        letter-spacing: -0.13px;
+        line-height: 1.5;
+        padding: 7px 12px !important;
         border-radius: 6px;
         transition: all 0.12s ease;
         cursor: pointer;
@@ -126,23 +124,22 @@ CUSTOM_CSS = """
     }
     section[data-testid="stSidebar"] .stRadio > div > label[data-checked="true"] {
         color: #f7f8f8 !important;
-        background: rgba(255,255,255,0.06) !important;
+        background: rgba(255,255,255,0.05) !important;
     }
-    /* Hide radio circles */
     section[data-testid="stSidebar"] .stRadio > div > label > div:first-child {
         display: none !important;
     }
 
-    /* ── Headings ── */
-    h1, h2, h3, h4 { color: #f7f8f8 !important; }
-    h1 { font-weight: 500; letter-spacing: -0.04em; }
-    h2 { font-weight: 500; letter-spacing: -0.02em; }
-    h3 { font-weight: 500; letter-spacing: -0.01em; font-size: 18px; }
+    /* ── Typography hierarchy (DESIGN.md §3) ── */
+    h1, h2, h3, h4 { color: #f7f8f8 !important; font-feature-settings: "cv01", "ss03"; }
+    h1 { font-size: 32px; font-weight: 400; line-height: 1.13; letter-spacing: -0.704px; }
+    h2 { font-size: 24px; font-weight: 400; line-height: 1.33; letter-spacing: -0.288px; }
+    h3 { font-size: 20px; font-weight: 590; line-height: 1.33; letter-spacing: -0.24px; }
 
-    /* ── Text ── */
-    p, span, li, td, th, label, div { color: #d0d6e0; }
+    /* Body text */
+    p, span, li, div { color: #d0d6e0; font-weight: 400; }
 
-    /* ── Metric Cards ── */
+    /* ── Metric Cards: Level 2 surface ── */
     .linear-card {
         background: rgba(255,255,255,0.02);
         border: 1px solid rgba(255,255,255,0.08);
@@ -150,80 +147,84 @@ CUSTOM_CSS = """
         padding: 20px 24px;
         transition: background 0.15s ease;
     }
-    .linear-card:hover {
-        background: rgba(255,255,255,0.04);
-    }
+    .linear-card:hover { background: rgba(255,255,255,0.04); }
     .linear-card .label {
-        font-size: 12px;
-        color: #8a8f98;
-        font-weight: 500;
+        font-size: 10px;
+        color: #62666d;
+        font-weight: 510;
         text-transform: uppercase;
-        letter-spacing: 0.04em;
-        margin-bottom: 6px;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
     }
     .linear-card .value {
         font-size: 28px;
-        font-weight: 500;
+        font-weight: 510;
         color: #f7f8f8;
-        letter-spacing: -0.02em;
+        letter-spacing: -0.704px;
+        line-height: 1.13;
     }
     .linear-card .delta {
-        font-size: 12px;
-        margin-top: 6px;
-        font-weight: 500;
+        font-size: 11px;
+        margin-top: 8px;
+        font-weight: 510;
     }
     .delta-positive { color: #10b981; }
     .delta-negative { color: #ef4444; }
 
-    /* ── Section Headers ── */
+    /* ── Section Headers: Heading 2 ── */
     .section-header {
         font-size: 24px;
-        font-weight: 500;
+        font-weight: 400;
         color: #f7f8f8;
-        letter-spacing: -0.02em;
-        margin: 28px 0 20px 0;
+        letter-spacing: -0.288px;
+        line-height: 1.33;
+        margin: 32px 0 20px 0;
         padding-bottom: 12px;
         border-bottom: 1px solid rgba(255,255,255,0.05);
     }
 
     /* ── Insight Box ── */
     .insight-box {
-        background: rgba(94,106,210,0.08);
+        background: rgba(94,106,210,0.06);
         border-radius: 8px;
         padding: 16px 20px;
         border-left: 3px solid #5e6ad2;
         margin: 16px 0;
         font-size: 14px;
+        font-weight: 400;
         color: #d0d6e0;
         line-height: 1.6;
+        letter-spacing: -0.182px;
     }
-    .insight-box strong { color: #f7f8f8; }
+    .insight-box strong { color: #f7f8f8; font-weight: 590; }
 
     /* ── Pill Badges ── */
     .pill {
         display: inline-block;
-        padding: 2px 10px;
+        padding: 0px 10px 0px 5px;
         border-radius: 9999px;
         font-size: 12px;
-        font-weight: 500;
+        font-weight: 510;
         border: 1px solid #23252a;
         color: #d0d6e0;
         background: transparent;
     }
 
-    /* ── Tables ── */
+    /* ── Tables: Level 2 surface ── */
     .stDataFrame { border-radius: 8px; overflow: hidden; }
     .stDataFrame table { background: rgba(255,255,255,0.02); }
     .stDataFrame th {
         background: rgba(255,255,255,0.04) !important;
-        color: #8a8f98 !important;
-        font-weight: 500;
-        font-size: 12px;
+        color: #62666d !important;
+        font-weight: 510;
+        font-size: 10px;
         text-transform: uppercase;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.05em;
     }
     .stDataFrame td {
         color: #d0d6e0 !important;
+        font-size: 13px;
+        font-weight: 400;
         border-color: rgba(255,255,255,0.05) !important;
     }
 
@@ -234,45 +235,53 @@ CUSTOM_CSS = """
     }
     .stTabs [data-baseweb="tab"] {
         color: #8a8f98;
-        font-weight: 500;
-        font-size: 14px;
+        font-weight: 510;
+        font-size: 13px;
+        letter-spacing: -0.13px;
     }
     .stTabs [aria-selected="true"] {
         color: #f7f8f8 !important;
         border-bottom-color: #5e6ad2 !important;
     }
 
-    /* ── Selectbox / Radio ── */
-    .stSelectbox > div > div,
-    .stRadio > div {
+    /* ── Inputs: ghost style (DESIGN.md §4) ── */
+    .stSelectbox > div > div {
         background: rgba(255,255,255,0.02);
-        border-color: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.08) !important;
         border-radius: 6px;
-    }
-
-    /* ── Buttons ── */
-    .stButton button {
-        background: rgba(255,255,255,0.04);
         color: #d0d6e0;
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 6px;
-        font-weight: 500;
         font-size: 13px;
-        transition: background 0.15s ease;
+        font-weight: 510;
+    }
+    .stSlider > div > div { color: #8a8f98; }
+
+    /* ── Buttons: ghost default (DESIGN.md §4) ── */
+    .stButton button {
+        background: rgba(255,255,255,0.02);
+        color: #e2e4e7;
+        border: 1px solid rgb(36, 40, 44);
+        border-radius: 6px;
+        font-weight: 510;
+        font-size: 12px;
+        letter-spacing: normal;
+        transition: background 0.12s ease;
+        outline: none;
     }
     .stButton button:hover {
-        background: rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.05);
         color: #f7f8f8;
-        border-color: rgba(255,255,255,0.12);
+    }
+    .stButton button:focus {
+        box-shadow: rgba(0,0,0,0.1) 0px 4px 12px;
     }
 
-    /* ── Dividers ── */
+    /* ── Dividers: border-subtle ── */
     hr { border-color: rgba(255,255,255,0.05) !important; }
 
-    /* ── Spinner ── */
+    /* ── Spinner: brand accent ── */
     .stSpinner > div { color: #7170ff !important; }
 
-    /* ── Scrollbar ── */
+    /* ── Scrollbar: subtle ── */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: #08090a; }
     ::-webkit-scrollbar-thumb { background: #28282c; border-radius: 3px; }
