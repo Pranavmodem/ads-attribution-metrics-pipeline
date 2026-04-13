@@ -34,23 +34,20 @@ st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 # ── Sidebar ──────────────────────────────────────────────────
 with st.sidebar:
-    # Logo / brand
+    # Brand — tight to top
     st.markdown(
-        '<div style="padding: 4px 0 20px 0;">'
-        '<div style="display:flex; align-items:center; gap:10px; margin-bottom:2px;">'
-        '<div style="width:28px; height:28px; border-radius:6px; background:linear-gradient(135deg,#5e6ad2,#7170ff); '
+        '<div style="display:flex; align-items:center; gap:10px; margin:-8px 0 0 0; padding:0;">'
+        '<div style="width:24px; height:24px; border-radius:6px; background:linear-gradient(135deg,#5e6ad2,#7170ff); '
         'display:flex; align-items:center; justify-content:center; flex-shrink:0;">'
-        '<span style="color:#fff !important; font-size:14px; font-weight:600;">A</span></div>'
-        '<div><span style="color:#f7f8f8 !important; font-size:15px; font-weight:500; '
-        'letter-spacing:-0.02em;">Attribution Pipeline</span></div></div>'
-        '<p style="color:#62666d !important; font-size:11px; margin:4px 0 0 38px; letter-spacing:0.02em;">ADS ANALYTICS</p>'
-        '</div>',
+        '<span style="color:#fff !important; font-size:12px; font-weight:590;">A</span></div>'
+        '<span style="color:#f7f8f8 !important; font-size:14px; font-weight:510; '
+        'letter-spacing:-0.182px;">Attribution Pipeline</span></div>',
         unsafe_allow_html=True,
     )
 
-    st.markdown('<div style="border-top:1px solid rgba(255,255,255,0.05); margin:0 0 16px 0;"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="border-top:1px solid rgba(255,255,255,0.05); margin:12px 0 8px 0;"></div>', unsafe_allow_html=True)
 
-    # Navigation
+    # Navigation — compact
     page = st.radio(
         "Navigation",
         [
@@ -63,10 +60,10 @@ with st.sidebar:
         label_visibility="collapsed",
     )
 
-    st.markdown('<div style="border-top:1px solid rgba(255,255,255,0.05); margin:20px 0 16px 0;"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="border-top:1px solid rgba(255,255,255,0.05); margin:12px 0 8px 0;"></div>', unsafe_allow_html=True)
 
-    # Data controls
-    st.markdown('<p style="color:#62666d !important; font-size:11px; font-weight:500; letter-spacing:0.05em; margin-bottom:8px;">DATA CONTROLS</p>', unsafe_allow_html=True)
+    # Data controls — compact
+    st.markdown('<p style="color:#62666d !important; font-size:10px; font-weight:510; letter-spacing:0.05em; margin-bottom:4px;">DATA CONTROLS</p>', unsafe_allow_html=True)
     data_volume = st.select_slider(
         "Data Volume",
         options=["Small (30d)", "Medium (60d)", "Large (90d)"],
@@ -83,12 +80,14 @@ with st.sidebar:
         st.cache_data.clear()
         st.rerun()
 
-    # Footer
+    # Footer — made by
     st.markdown(
-        '<div style="position:fixed; bottom:20px; left:16px; width:220px;">'
-        '<div style="border-top:1px solid rgba(255,255,255,0.05); padding-top:12px;">'
-        '<p style="color:#3e3e44 !important; font-size:10px; line-height:1.5; letter-spacing:0.02em; margin:0;">'
-        '7 MODELS &middot; STREAMLIT + PLOTLY<br>LINEAR DESIGN SYSTEM</p>'
+        '<div style="position:fixed; bottom:16px; left:16px; width:220px;">'
+        '<div style="border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">'
+        '<p style="color:#62666d !important; font-size:11px; font-weight:510; letter-spacing:-0.13px; margin:0 0 2px 0;">'
+        'Made by Pranav Modem</p>'
+        '<p style="color:#3e3e44 !important; font-size:10px; line-height:1.4; margin:0;">'
+        '7 Models &middot; Streamlit + Plotly</p>'
         '</div></div>',
         unsafe_allow_html=True,
     )

@@ -96,7 +96,8 @@ CUSTOM_CSS = """
         background-color: #0f1011;
         border-right: 1px solid rgba(255,255,255,0.05);
     }
-    section[data-testid="stSidebar"] > div:first-child { padding-top: 1.5rem; }
+    section[data-testid="stSidebar"] > div:first-child { padding-top: 1rem; }
+    section[data-testid="stSidebar"] .stMarkdown { margin-bottom: 0; }
     section[data-testid="stSidebar"] * { color: #8a8f98 !important; }
 
     /* Nav: 13px weight 510 (approx 500), pill hover */
