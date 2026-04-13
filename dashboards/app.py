@@ -34,7 +34,12 @@ st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 # ── Sidebar ──────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("## 📊 Attribution Pipeline")
+    st.markdown(
+        '<p style="font-size:18px; font-weight:500; letter-spacing:-0.02em; '
+        'color:#f7f8f8; margin-bottom:4px;">Attribution Pipeline</p>'
+        '<p style="font-size:12px; color:#62666d; margin-top:0;">Ads Analytics Dashboard</p>',
+        unsafe_allow_html=True,
+    )
     st.markdown("---")
 
     page = st.radio(
@@ -72,11 +77,10 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown(
-        '<p style="color: #94A3B8; font-size: 12px;">'
-        "Built with Streamlit + Plotly<br>"
-        "Models: Last Touch, First Touch, Linear,<br>"
-        "Time Decay, Position Based,<br>"
-        "Markov Chain, Shapley Value"
+        '<p style="color: #62666d; font-size: 11px; line-height: 1.6;">'
+        "7 Attribution Models<br>"
+        "Streamlit + Plotly<br>"
+        "Linear Design System"
         "</p>",
         unsafe_allow_html=True,
     )
