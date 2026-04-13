@@ -302,9 +302,15 @@ def main():
             files: {{
 {files_block}
             }}
-        }}, document.getElementById("root")).then(() => {{
-            document.getElementById("loading").style.display = "none";
+        }}, document.getElementById("root"));
+        // Hide loading screen after stlite initializes
+        const observer = new MutationObserver(() => {{
+            if (document.querySelector('iframe') || document.querySelector('[data-testid="stApp"]')) {{
+                document.getElementById("loading").style.display = "none";
+                observer.disconnect();
+            }}
         }});
+        observer.observe(document.getElementById("root"), {{ childList: true, subtree: true }});
     </script>
 </body>
 </html>"""
