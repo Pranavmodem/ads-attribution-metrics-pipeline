@@ -18,7 +18,12 @@ def render(impressions, clicks, conversions, campaigns):
     imp_nulls = impressions.isnull().sum().sum()
     imp_dups = impressions["impression_id"].duplicated().sum()
     conv_nulls = conversions.isnull().sum().sum()
-    freshness_hours = (pd.Timestamp.now(tz="UTC") - impressions["timestamp"].max()).total_seconds() / 3600
+    max_ts = impressions["timestamp"].max()
+    now = pd.Timestamp.now()
+    # Strip timezone info to avoid naive vs aware comparison
+    if hasattr(max_ts, 'tzinfo') and max_ts.tzinfo is not None:
+        max_ts = max_ts.tz_localize(None)
+    freshness_hours = max((now - max_ts).total_seconds() / 3600, 0)
 
     with c1:
         color = COLORS["success"] if imp_nulls == 0 else COLORS["danger"]
