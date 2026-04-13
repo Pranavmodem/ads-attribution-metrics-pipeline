@@ -12,6 +12,7 @@ References:
 """
 import logging
 from itertools import combinations
+from math import factorial
 from typing import Dict, List, Tuple
 
 import numpy as np
@@ -164,38 +165,54 @@ class MarkovAttribution:
         return matrix
 
     def _simulate_conversion_rate(self, matrix: Dict[str, Dict[str, float]]) -> float:
-        """Simulate conversion rate by walking the Markov chain."""
+        """Compute exact conversion probability using absorbing Markov chain math.
+
+        Solves the system N = (I - Q)^{-1} where Q is the transient-state
+        transition submatrix, then reads off absorption probabilities into
+        the "(conversion)" state. This is exact and O(n^3) — no recursion.
+        """
         if "(start)" not in matrix:
             return 0.0
 
-        # Use absorbing Markov chain math for exact solution
-        # Walk from (start) and compute probability of reaching (conversion)
-        visited = set()
-        return self._walk_probability(matrix, "(start)", "(conversion)", visited)
+        absorbing = {"(conversion)", "(null)"}
+        all_states = set(matrix.keys())
+        for dsts in matrix.values():
+            all_states.update(dsts.keys())
+        transient = sorted(s for s in all_states if s not in absorbing and s in matrix)
 
-    def _walk_probability(
-        self,
-        matrix: Dict[str, Dict[str, float]],
-        current: str,
-        target: str,
-        visited: set,
-        max_depth: int = 50,
-    ) -> float:
-        """Recursively compute probability of reaching target from current state."""
-        if current == target:
-            return 1.0
-        if current == "(null)" or current not in matrix or max_depth <= 0:
-            return 0.0
-        if current in visited:
+        if not transient:
+            return matrix.get("(start)", {}).get("(conversion)", 0.0)
+
+        state_idx = {s: i for i, s in enumerate(transient)}
+        n = len(transient)
+
+        # Build Q (transient-to-transient) and R (transient-to-absorbing)
+        Q = np.zeros((n, n))
+        conv_idx_col = 0  # column index for (conversion) in R
+        R_conv = np.zeros(n)  # only need the (conversion) column of R
+
+        for src in transient:
+            i = state_idx[src]
+            for dst, prob in matrix.get(src, {}).items():
+                if dst in state_idx:
+                    Q[i, state_idx[dst]] = prob
+                elif dst == "(conversion)":
+                    R_conv[i] = prob
+
+        # Fundamental matrix N = (I - Q)^{-1}
+        try:
+            IQ = np.eye(n) - Q
+            N = np.linalg.inv(IQ)
+        except np.linalg.LinAlgError:
             return 0.0
 
-        visited.add(current)
-        prob = 0.0
-        for next_state, trans_prob in matrix[current].items():
-            prob += trans_prob * self._walk_probability(
-                matrix, next_state, target, visited.copy(), max_depth - 1
-            )
-        return prob
+        # Absorption probabilities B = N * R
+        # We only need B[(start), (conversion)]
+        if "(start)" not in state_idx:
+            return 0.0
+
+        start_i = state_idx["(start)"]
+        return float(N[start_i] @ R_conv)
 
     def _remove_channel(
         self, matrix: Dict[str, Dict[str, float]], channel: str
@@ -297,7 +314,7 @@ class ShapleyAttribution:
                     # Shapley weight: |S|! * (n - |S| - 1)! / n!
                     s = len(subset_set)
                     weight = (
-                        _factorial(s) * _factorial(n - s - 1) / _factorial(n)
+                        factorial(s) * factorial(n - s - 1) / factorial(n)
                     )
                     shapley_value += weight * marginal
 
@@ -364,7 +381,7 @@ class PositionBasedAttribution:
         return total_credits
 
 
-def _factorial(n: int) -> int:
+def factorial(n: int) -> int:
     """Compute factorial with memoization for small values."""
     if n <= 1:
         return 1

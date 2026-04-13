@@ -47,11 +47,11 @@ def load_data(data_dir: str = "data/raw/"):
 
 
 @st.cache_data(ttl=600)
-def compute_attribution_comparison(_impressions, _conversions, _cache_key: str = ""):
+def compute_attribution_comparison(_impressions, _conversions, cache_key: str = ""):
     """Run all attribution models for comparison.
 
-    _cache_key busts the cache when date filters change. Underscore prefix
-    tells Streamlit not to hash the large DataFrames themselves.
+    cache_key busts the cache when date filters change. Underscore prefix
+    on DataFrames tells Streamlit not to hash the large objects.
     """
     from src.metrics.advanced_attribution import (
         build_journeys, MarkovAttribution, ShapleyAttribution,

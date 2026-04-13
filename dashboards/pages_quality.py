@@ -16,7 +16,7 @@ def render(impressions, clicks, conversions, campaigns):
     max_ts = impressions["timestamp"].max()
     now = pd.Timestamp.now()
     if hasattr(max_ts, 'tzinfo') and max_ts.tzinfo is not None:
-        max_ts = max_ts.tz_localize(None)
+        max_ts = max_ts.replace(tzinfo=None)
     freshness_hours = max((now - max_ts).total_seconds() / 3600, 0)
 
     c1, c2, c3, c4 = st.columns(4)
@@ -76,7 +76,10 @@ def render(impressions, clicks, conversions, campaigns):
     daily_vol = impressions.groupby("date").size().reset_index(name="count")
     mean_vol = daily_vol["count"].mean()
     std_vol = daily_vol["count"].std()
-    daily_vol["z_score"] = (daily_vol["count"] - mean_vol) / std_vol if std_vol > 0 else 0
+    if pd.notna(std_vol) and std_vol > 0:
+        daily_vol["z_score"] = (daily_vol["count"] - mean_vol) / std_vol
+    else:
+        daily_vol["z_score"] = 0.0
     daily_vol["anomaly"] = daily_vol["z_score"].abs() > 2
 
     fig3 = go.Figure()

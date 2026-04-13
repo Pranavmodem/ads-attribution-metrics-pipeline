@@ -9,7 +9,6 @@ generate-data:
 pipeline: generate-data
 	python src/ingestion/impression_loader.py
 	python src/ingestion/conversion_loader.py
-	python src/transform/attribution_transform.py
 	cd models && dbt run --profiles-dir ../
 	@echo "Pipeline complete. Check BigQuery marts for results."
 

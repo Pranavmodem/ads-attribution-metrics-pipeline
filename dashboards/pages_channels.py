@@ -1,4 +1,5 @@
 """Channel & Journey Analysis — funnel, trends, patterns (Linear dark theme)."""
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
@@ -11,21 +12,17 @@ def render(impressions, clicks, conversions, campaigns):
 
     channels = sorted(impressions["channel"].unique())
 
-    funnel_data = []
-    for ch in channels:
-        ch_imp = len(impressions[impressions["channel"] == ch])
-        ch_clk = len(clicks[clicks["channel"] == ch])
-        ch_conv = len(conversions[conversions["channel"] == ch])
-        ch_rev = conversions[conversions["channel"] == ch]["revenue_usd"].sum()
-        ch_spend = impressions[impressions["channel"] == ch]["bid_price_usd"].sum()
-        funnel_data.append({
-            "channel": ch, "impressions": ch_imp, "clicks": ch_clk,
-            "conversions": ch_conv, "revenue": ch_rev, "spend": ch_spend,
-            "ctr": ch_clk / ch_imp if ch_imp else 0,
-            "cvr": ch_conv / ch_clk if ch_clk else 0,
-            "roas": ch_rev / ch_spend if ch_spend else 0,
-        })
-    funnel_df = __import__("pandas").DataFrame(funnel_data)
+    imp_by_ch = impressions.groupby("channel").agg(
+        impressions=("impression_id", "count"), spend=("bid_price_usd", "sum"),
+    )
+    clk_by_ch = clicks.groupby("channel").size().rename("clicks")
+    conv_by_ch = conversions.groupby("channel").agg(
+        conversions=("conversion_id", "count"), revenue=("revenue_usd", "sum"),
+    )
+    funnel_df = imp_by_ch.join(clk_by_ch, how="left").join(conv_by_ch, how="left").fillna(0).reset_index()
+    funnel_df["ctr"] = (funnel_df["clicks"] / funnel_df["impressions"]).fillna(0)
+    funnel_df["cvr"] = (funnel_df["conversions"] / funnel_df["clicks"]).fillna(0)
+    funnel_df["roas"] = (funnel_df["revenue"] / funnel_df["spend"]).fillna(0)
 
     selected_channel = st.selectbox("Select Channel", channels)
     ch_row = funnel_df[funnel_df["channel"] == selected_channel].iloc[0]
