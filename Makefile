@@ -1,4 +1,4 @@
-.PHONY: setup generate-data pipeline test quality lint clean
+.PHONY: setup generate-data pipeline test quality lint clean dashboard
 
 setup:
 	python -m venv venv && source venv/bin/activate && pip install -r requirements.txt
@@ -13,6 +13,11 @@ pipeline: generate-data
 	cd models && dbt run --profiles-dir ../
 	@echo "Pipeline complete. Check BigQuery marts for results."
 
+dashboard:
+	@echo "Generating sample data if needed..."
+	@test -f data/raw/impressions.parquet || python src/utils/data_generator.py --output data/raw/ --days 90 --daily-volume 2000
+	streamlit run dashboards/app.py
+
 test:
 	pytest tests/ -v --tb=short
 
@@ -21,8 +26,8 @@ quality:
 	python src/utils/quality_checks.py
 
 lint:
-	ruff check src/ tests/
-	ruff format --check src/ tests/
+	ruff check src/ tests/ dashboards/
+	ruff format --check src/ tests/ dashboards/
 
 clean:
 	rm -rf data/raw/*.parquet data/processed/* target/ dbt_packages/ __pycache__
