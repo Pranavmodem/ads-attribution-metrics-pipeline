@@ -1,0 +1,9 @@
+# Full pipeline dependencies (GCP, Airflow, dbt)
+# Install with: pip install -r requirements-pipeline.txt
+-r requirements.txt
+apache-airflow==2.8.1
+google-cloud-bigquery==3.14.1
+google-cloud-storage==2.14.0
+dbt-core==1.7.4
+dbt-bigquery==1.7.4
+great-expectations==0.18.8
