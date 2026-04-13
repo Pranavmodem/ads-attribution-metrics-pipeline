@@ -8,6 +8,7 @@ Run: streamlit run dashboards/app.py
 """
 import os
 import sys
+from datetime import timedelta
 
 # Ensure project root is importable
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -85,8 +86,11 @@ campaigns, impressions, clicks, conversions = load_data()
 
 # Apply date filter based on sidebar
 n_days = days_map[data_volume]
+if impressions.empty:
+    st.error("No data available. Click 'Regenerate Data' in the sidebar.")
+    st.stop()
 max_date = impressions["date"].max()
-min_date = max_date - __import__("datetime").timedelta(days=n_days)
+min_date = max_date - timedelta(days=n_days)
 impressions = impressions[impressions["date"] >= min_date]
 clicks = clicks[clicks["date"] >= min_date]
 conversions = conversions[conversions["date"] >= min_date]
@@ -97,7 +101,8 @@ if page == "Executive Overview":
 
 elif page == "Attribution Analysis":
     with st.spinner("Running 7 attribution models..."):
-        attr_df = compute_attribution_comparison(impressions, conversions)
+        cache_key = f"{min_date}_{max_date}"
+        attr_df = compute_attribution_comparison(impressions, conversions, cache_key)
     attribution.render(impressions, conversions, attr_df)
 
 elif page == "Campaign Performance":

@@ -47,8 +47,12 @@ def load_data(data_dir: str = "data/raw/"):
 
 
 @st.cache_data(ttl=600)
-def compute_attribution_comparison(_impressions, _conversions):
-    """Run all attribution models for comparison. Underscore prefix = unhashable."""
+def compute_attribution_comparison(_impressions, _conversions, _cache_key: str = ""):
+    """Run all attribution models for comparison.
+
+    _cache_key busts the cache when date filters change. Underscore prefix
+    tells Streamlit not to hash the large DataFrames themselves.
+    """
     from src.metrics.advanced_attribution import (
         build_journeys, MarkovAttribution, ShapleyAttribution,
         PositionBasedAttribution,
@@ -63,7 +67,13 @@ def compute_attribution_comparison(_impressions, _conversions):
         conv = conv.sample(3000, random_state=42)
     if len(imp) > 50000:
         user_ids = set(conv["user_id"].unique())
-        imp = imp[imp["user_id"].isin(user_ids) | (imp.index.isin(imp.sample(min(50000, len(imp)), random_state=42).index))]
+        user_imps = imp[imp["user_id"].isin(user_ids)]
+        remaining = imp[~imp["user_id"].isin(user_ids)]
+        pad = min(50000 - len(user_imps), len(remaining))
+        if pad > 0:
+            imp = pd.concat([user_imps, remaining.sample(pad, random_state=42)])
+        else:
+            imp = user_imps
 
     results = []
 

@@ -41,12 +41,13 @@ def build_journeys(
     window = pd.Timedelta(days=attribution_window_days)
 
     converting_journeys = []
+    imp_grouped = impressions.sort_values("timestamp").groupby("user_id")
+    conv_grouped = conversions.groupby("user_id")
     for user_id in converted_users:
-        user_convs = conversions[conversions["user_id"] == user_id]
-        user_imps = impressions[impressions["user_id"] == user_id].sort_values("timestamp")
-        if user_imps.empty:
+        if user_id not in imp_grouped.groups:
             continue
-        first_conv_time = user_convs["timestamp"].min()
+        user_imps = imp_grouped.get_group(user_id)
+        first_conv_time = conv_grouped.get_group(user_id)["timestamp"].min()
         relevant_imps = user_imps[
             (user_imps["timestamp"] <= first_conv_time)
             & (user_imps["timestamp"] >= first_conv_time - window)
@@ -244,6 +245,13 @@ class ShapleyAttribution:
         self.channels = sorted(
             set(ch for journey in converting_journeys for ch in journey)
         )
+
+        if len(self.channels) > 12:
+            raise ValueError(
+                f"Shapley value is O(2^n) and infeasible with {len(self.channels)} channels. "
+                f"Max supported: 12. Use MarkovAttribution instead."
+            )
+
         total_journeys = len(converting_journeys) + non_converting_count
 
         # Compute coalition values: for each subset of channels,

@@ -51,11 +51,14 @@ CUSTOM_CSS = """
 
 def metric_card(label, value, delta=None, delta_positive=True, color="#4F46E5"):
     """Render a styled metric card."""
+    from html import escape
+    label = escape(str(label))
+    value = escape(str(value))
     delta_html = ""
     if delta is not None:
         cls = "delta-positive" if delta_positive else "delta-negative"
         arrow = "&#9650;" if delta_positive else "&#9660;"
-        delta_html = f'<div class="delta {cls}">{arrow} {delta}</div>'
+        delta_html = f'<div class="delta {cls}">{arrow} {escape(str(delta))}</div>'
     return f"""
     <div class="metric-card" style="border-left-color: {color};">
         <div class="label">{label}</div>

@@ -18,7 +18,7 @@ def render(impressions, clicks, conversions, campaigns):
     imp_nulls = impressions.isnull().sum().sum()
     imp_dups = impressions["impression_id"].duplicated().sum()
     conv_nulls = conversions.isnull().sum().sum()
-    freshness_hours = (pd.Timestamp.now() - impressions["timestamp"].max()).total_seconds() / 3600
+    freshness_hours = (pd.Timestamp.now(tz="UTC") - impressions["timestamp"].max()).total_seconds() / 3600
 
     with c1:
         color = COLORS["success"] if imp_nulls == 0 else COLORS["danger"]

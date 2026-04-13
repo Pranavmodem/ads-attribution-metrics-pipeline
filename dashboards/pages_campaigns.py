@@ -33,15 +33,15 @@ def render(impressions, clicks, conversions, campaigns):
     metrics = metrics.merge(campaigns[["campaign_id", "campaign_name", "channel", "status", "budget_usd"]], on="campaign_id", how="left")
     metrics = metrics.fillna(0)
 
-    metrics["ctr"] = metrics["clicks"] / metrics["impressions"]
+    metrics["ctr"] = metrics.apply(lambda r: r["clicks"] / r["impressions"] if r["impressions"] > 0 else 0, axis=1)
     metrics["cvr"] = metrics.apply(lambda r: r["conversions"] / r["clicks"] if r["clicks"] > 0 else 0, axis=1)
-    metrics["cpm"] = (metrics["spend"] / metrics["impressions"]) * 1000
+    metrics["cpm"] = metrics.apply(lambda r: (r["spend"] / r["impressions"]) * 1000 if r["impressions"] > 0 else 0, axis=1)
     metrics["roas"] = metrics.apply(lambda r: r["revenue"] / r["spend"] if r["spend"] > 0 else 0, axis=1)
     metrics["cpa"] = metrics.apply(lambda r: r["spend"] / r["conversions"] if r["conversions"] > 0 else 0, axis=1)
 
     # Top performers
     c1, c2, c3 = st.columns(3)
-    if not metrics.empty:
+    if not metrics.empty and metrics["roas"].max() > 0:
         top_roas = metrics.loc[metrics["roas"].idxmax()]
         top_conv = metrics.loc[metrics["conversions"].idxmax()]
         top_ctr_camp = metrics.loc[metrics["ctr"].idxmax()]
@@ -74,7 +74,7 @@ def render(impressions, clicks, conversions, campaigns):
             total_spend=("spend", "sum"),
             total_revenue=("revenue", "sum"),
         ).reset_index()
-        ch_metrics["roas"] = ch_metrics["total_revenue"] / ch_metrics["total_spend"]
+        ch_metrics["roas"] = ch_metrics.apply(lambda r: r["total_revenue"] / r["total_spend"] if r["total_spend"] > 0 else 0, axis=1)
         ch_metrics = ch_metrics.sort_values("roas", ascending=True)
         colors = [COLORS["channels"].get(ch, "#94A3B8") for ch in ch_metrics["channel"]]
         fig2 = go.Figure(go.Bar(
