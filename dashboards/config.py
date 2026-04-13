@@ -88,23 +88,49 @@ CUSTOM_CSS = """
     section[data-testid="stSidebar"] {
         background-color: #0f1011;
         border-right: 1px solid rgba(255,255,255,0.05);
+        padding-top: 0;
+    }
+    section[data-testid="stSidebar"] > div:first-child {
+        padding-top: 1.5rem;
     }
     section[data-testid="stSidebar"] * {
-        color: #d0d6e0 !important;
+        color: #8a8f98 !important;
     }
     section[data-testid="stSidebar"] h1,
     section[data-testid="stSidebar"] h2,
     section[data-testid="stSidebar"] h3 {
         color: #f7f8f8 !important;
     }
-    section[data-testid="stSidebar"] .stRadio label {
-        color: #8a8f98 !important;
-        font-size: 14px;
-        font-weight: 500;
+
+    /* Nav items — clean pill style */
+    section[data-testid="stSidebar"] .stRadio > div {
+        gap: 2px !important;
+        background: transparent !important;
+        border: none !important;
     }
-    section[data-testid="stSidebar"] .stRadio label[data-checked="true"],
-    section[data-testid="stSidebar"] .stRadio label:hover {
+    section[data-testid="stSidebar"] .stRadio > div > label {
+        color: #8a8f98 !important;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        padding: 8px 12px !important;
+        border-radius: 6px;
+        transition: all 0.12s ease;
+        cursor: pointer;
+        border: none !important;
+        background: transparent !important;
+    }
+    section[data-testid="stSidebar"] .stRadio > div > label:hover {
         color: #f7f8f8 !important;
+        background: rgba(255,255,255,0.04) !important;
+    }
+    section[data-testid="stSidebar"] .stRadio > div > label[data-checked="true"] {
+        color: #f7f8f8 !important;
+        background: rgba(255,255,255,0.06) !important;
+    }
+    /* Hide radio circles */
+    section[data-testid="stSidebar"] .stRadio > div > label > div:first-child {
+        display: none !important;
     }
 
     /* ── Headings ── */

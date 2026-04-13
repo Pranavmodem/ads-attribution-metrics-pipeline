@@ -34,14 +34,23 @@ st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 # ── Sidebar ──────────────────────────────────────────────────
 with st.sidebar:
+    # Logo / brand
     st.markdown(
-        '<p style="font-size:18px; font-weight:500; letter-spacing:-0.02em; '
-        'color:#f7f8f8; margin-bottom:4px;">Attribution Pipeline</p>'
-        '<p style="font-size:12px; color:#62666d; margin-top:0;">Ads Analytics Dashboard</p>',
+        '<div style="padding: 4px 0 20px 0;">'
+        '<div style="display:flex; align-items:center; gap:10px; margin-bottom:2px;">'
+        '<div style="width:28px; height:28px; border-radius:6px; background:linear-gradient(135deg,#5e6ad2,#7170ff); '
+        'display:flex; align-items:center; justify-content:center; flex-shrink:0;">'
+        '<span style="color:#fff !important; font-size:14px; font-weight:600;">A</span></div>'
+        '<div><span style="color:#f7f8f8 !important; font-size:15px; font-weight:500; '
+        'letter-spacing:-0.02em;">Attribution Pipeline</span></div></div>'
+        '<p style="color:#62666d !important; font-size:11px; margin:4px 0 0 38px; letter-spacing:0.02em;">ADS ANALYTICS</p>'
+        '</div>',
         unsafe_allow_html=True,
     )
-    st.markdown("---")
 
+    st.markdown('<div style="border-top:1px solid rgba(255,255,255,0.05); margin:0 0 16px 0;"></div>', unsafe_allow_html=True)
+
+    # Navigation
     page = st.radio(
         "Navigation",
         [
@@ -54,10 +63,10 @@ with st.sidebar:
         label_visibility="collapsed",
     )
 
-    st.markdown("---")
+    st.markdown('<div style="border-top:1px solid rgba(255,255,255,0.05); margin:20px 0 16px 0;"></div>', unsafe_allow_html=True)
 
     # Data controls
-    st.markdown("### Data Controls")
+    st.markdown('<p style="color:#62666d !important; font-size:11px; font-weight:500; letter-spacing:0.05em; margin-bottom:8px;">DATA CONTROLS</p>', unsafe_allow_html=True)
     data_volume = st.select_slider(
         "Data Volume",
         options=["Small (30d)", "Medium (60d)", "Large (90d)"],
@@ -65,8 +74,7 @@ with st.sidebar:
     )
     days_map = {"Small (30d)": 30, "Medium (60d)": 60, "Large (90d)": 90}
 
-    if st.button("🔄 Regenerate Data", use_container_width=True):
-        # Clear parquet files so loader regenerates
+    if st.button("Regenerate Data", use_container_width=True):
         data_dir = os.path.join(os.path.dirname(__file__), "..", "data", "raw")
         for f in ["impressions.parquet", "clicks.parquet", "conversions.parquet", "campaigns.parquet"]:
             path = os.path.join(data_dir, f)
@@ -75,13 +83,13 @@ with st.sidebar:
         st.cache_data.clear()
         st.rerun()
 
-    st.markdown("---")
+    # Footer
     st.markdown(
-        '<p style="color: #62666d; font-size: 11px; line-height: 1.6;">'
-        "7 Attribution Models<br>"
-        "Streamlit + Plotly<br>"
-        "Linear Design System"
-        "</p>",
+        '<div style="position:fixed; bottom:20px; left:16px; width:220px;">'
+        '<div style="border-top:1px solid rgba(255,255,255,0.05); padding-top:12px;">'
+        '<p style="color:#3e3e44 !important; font-size:10px; line-height:1.5; letter-spacing:0.02em; margin:0;">'
+        '7 MODELS &middot; STREAMLIT + PLOTLY<br>LINEAR DESIGN SYSTEM</p>'
+        '</div></div>',
         unsafe_allow_html=True,
     )
 
