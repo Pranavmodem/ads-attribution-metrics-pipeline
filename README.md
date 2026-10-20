@@ -2,6 +2,8 @@
 
 > End-to-end analytics engineering pipeline that ingests ad impression, click, and conversion event data across 7 marketing channels, runs both heuristic and data-driven attribution models (Markov chain, Shapley value), and exposes an interactive 5-page Streamlit dashboard for self-service analytics.
 
+**Live dashboard:** [pranavmodem.github.io/ads-attribution-metrics-pipeline](https://pranavmodem.github.io/ads-attribution-metrics-pipeline/)
+
 ## Why I Built This
 
 Working in ad tech, I kept running into the same problem: business teams needed to understand which ads actually drove real-world outcomes (store visits, purchases), but the data was fragmented across impression logs, conversion events, and third-party attribution signals. Every analysis was a one-off SQL query, and nobody trusted the numbers because there was no single source of truth.
