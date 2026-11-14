@@ -52,5 +52,8 @@ jobs:
       - name: Run the DAG for today
         run: |
           /tmp/airflow/bin/airflow db migrate
-          test -z "$(/tmp/airflow/bin/airflow dags list-import-errors -o plain | grep -v 'No data found')"
+          # Parse the DAG folder so import errors are recorded, then require none.
+          # Airflow also prints warnings to stdout, so look for its "no errors" line.
+          /tmp/airflow/bin/airflow dags reserialize
+          /tmp/airflow/bin/airflow dags list-import-errors -o plain 2>&1 | tee /dev/stderr | grep -q "No data found"
           /tmp/airflow/bin/airflow dags test ads_attribution_pipeline "$(date -u +%F)"
