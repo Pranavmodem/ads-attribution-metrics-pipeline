@@ -1,0 +1,41 @@
+version: 2
+
+models:
+  - name: mart_daily_performance
+    description: Daily delivery, spend, conversions, and revenue.
+    columns:
+      - name: date
+        data_tests: [unique, not_null]
+
+  - name: mart_campaign_performance
+    description: Campaign results under each heuristic attribution model.
+    columns:
+      - name: campaign_id
+        data_tests: [not_null]
+
+  - name: mart_channel_attribution
+    description: Channel credit, attributed conversions and revenue, and ROAS under every model, plus the truth.
+    columns:
+      - name: credit
+        data_tests: [not_null]
+
+  - name: mart_model_accuracy
+    description: Mean absolute error of each model's channel shares against the ground truth.
+    columns:
+      - name: model
+        data_tests: [unique, not_null]
+
+  - name: mart_journey_paths
+    description: Collapsed channel paths with user counts and conversion rates.
+    columns:
+      - name: path
+        data_tests: [unique, not_null]
+
+  - name: mart_journey_lengths
+    description: Conversion rate by number of impressions in the window.
+
+  - name: mart_ingestion_audit
+    description: Rows loaded and set aside per entity.
+    columns:
+      - name: entity
+        data_tests: [unique, not_null]

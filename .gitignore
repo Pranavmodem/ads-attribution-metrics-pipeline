@@ -16,13 +16,14 @@ venv/
 .idea/
 *.swp
 
-# Data (keep structure, ignore actual data files)
+# Generated data (docs/data, the dashboard's snapshot, is committed)
 data/raw/*.parquet
 data/raw/*.csv
 data/raw/*.json
-data/processed/*
+data/lake/
+data/quality/
+data/warehouse.duckdb*
 !data/raw/.gitkeep
-!data/processed/.gitkeep
 
 # dbt
 target/
@@ -36,7 +37,11 @@ logs/
 .DS_Store
 Thumbs.db
 
-# Airflow
+# Airflow (local standalone home)
+airflow_home/
 airflow.db
 airflow.cfg
 webserver_config.py
+
+# dbt (profiles live in the repo root)
+.user.yml

@@ -1,38 +1,34 @@
 """
 logging_config.py
-Structured logging setup for pipeline observability.
+Logging setup for pipeline entry points.
+
+Human-readable by default; set LOG_FORMAT=json for one JSON object per line,
+which log collectors (Cloud Logging, Datadog) parse without extra config.
 """
+import json
 import logging
+import os
 import sys
 
-import structlog
+
+class JsonFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        payload = {
+            "ts": self.formatTime(record, "%Y-%m-%dT%H:%M:%S"),
+            "level": record.levelname.lower(),
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+        if record.exc_info:
+            payload["exc_info"] = self.formatException(record.exc_info)
+        return json.dumps(payload)
 
 
-def setup_logging(level: str = "INFO"):
-    """Configure structured logging for the pipeline.
-
-    Uses structlog for JSON-formatted output in production,
-    human-readable in development.
-    """
-    logging.basicConfig(
-        format="%(message)s",
-        stream=sys.stdout,
-        level=getattr(logging, level.upper()),
-    )
-
-    structlog.configure(
-        processors=[
-            structlog.contextvars.merge_contextvars,
-            structlog.processors.add_log_level,
-            structlog.processors.StackInfoRenderer(),
-            structlog.dev.set_exc_info,
-            structlog.processors.TimeStamper(fmt="iso"),
-            structlog.dev.ConsoleRenderer(),
-        ],
-        wrapper_class=structlog.make_filtering_bound_logger(
-            getattr(logging, level.upper())
-        ),
-        context_class=dict,
-        logger_factory=structlog.PrintLoggerFactory(),
-        cache_logger_on_first_use=True,
-    )
+def setup_logging(level: str = None) -> None:
+    level = (level or os.getenv("LOG_LEVEL", "INFO")).upper()
+    handler = logging.StreamHandler(sys.stdout)
+    if os.getenv("LOG_FORMAT", "").lower() == "json":
+        handler.setFormatter(JsonFormatter())
+    else:
+        handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)-7s %(name)s  %(message)s", "%H:%M:%S"))
+    logging.basicConfig(level=level, handlers=[handler], force=True)
