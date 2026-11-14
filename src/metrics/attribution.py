@@ -1,40 +1,37 @@
 """
 attribution.py
-Core attribution logic for mapping conversions back to ad impressions.
+Touchpoint-level (heuristic) attribution: maps each conversion back to the
+impressions that preceded it and splits the credit by a fixed rule.
 
-Supports multiple attribution models:
-- Last-touch: 100% credit to the last impression before conversion
-- First-touch: 100% credit to the first impression in the user journey
-- Linear: Equal credit distributed across all touchpoints
-- Time-decay: Exponentially more credit to recent touchpoints
+Supported models:
+- last_touch:  100% credit to the last impression before the conversion
+- first_touch: 100% credit to the first impression in the window
+- linear:      equal credit across every impression in the window
+- time_decay:  credit halves for every `decay_half_life_days` before the conversion
 """
 import logging
-from dataclasses import dataclass
-from typing import List, Literal
 from datetime import timedelta
+from typing import Literal
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
 AttributionModel = Literal["last_touch", "first_touch", "linear", "time_decay"]
+HEURISTIC_MODELS = ("last_touch", "first_touch", "linear", "time_decay")
 
-
-@dataclass
-class AttributionResult:
-    """Result of attribution for a single conversion."""
-    conversion_id: str
-    model: AttributionModel
-    touchpoints: List[dict]  # Each: {impression_id, credit, timestamp}
-    total_credit: float  # Should sum to 1.0
+OUTPUT_COLUMNS = [
+    "conversion_id", "impression_id", "campaign_id", "credit", "revenue_attributed", "model",
+    "impression_ts", "conversion_ts",
+]
 
 
 class AttributionEngine:
-    """Computes attribution across multiple models.
+    """Assigns conversion credit to impressions with one heuristic model.
 
-    Given a set of impressions and conversions for a user,
-    assigns credit to each impression based on the selected model.
+    The join is vectorised: conversions are merged with the same user's
+    impressions, filtered to the attribution window, and credited per group.
     """
 
     def __init__(
@@ -43,106 +40,72 @@ class AttributionEngine:
         attribution_window_days: int = 30,
         decay_half_life_days: float = 7.0,
     ):
+        if model not in HEURISTIC_MODELS:
+            raise ValueError(f"Unknown model: {model}. Use one of {HEURISTIC_MODELS}")
         self.model = model
         self.attribution_window = timedelta(days=attribution_window_days)
         self.decay_half_life = decay_half_life_days
 
-    def attribute(
-        self,
-        impressions: pd.DataFrame,
-        conversions: pd.DataFrame,
-    ) -> pd.DataFrame:
-        """Run attribution for all conversions against their impression history.
+    def attribute(self, impressions: pd.DataFrame, conversions: pd.DataFrame) -> pd.DataFrame:
+        """Credit every conversion to the impressions in its attribution window.
 
         Args:
-            impressions: DataFrame with columns [impression_id, user_id, timestamp, campaign_id]
-            conversions: DataFrame with columns [conversion_id, user_id, timestamp, revenue_usd]
+            impressions: [impression_id, user_id, timestamp, campaign_id], optional channel
+            conversions: [conversion_id, user_id, timestamp, revenue_usd]
 
         Returns:
-            DataFrame with columns [conversion_id, impression_id, credit, revenue_attributed]
+            One row per credited touchpoint: [conversion_id, impression_id, campaign_id,
+            credit, revenue_attributed, model, impression_ts, conversion_ts], plus
+            channel when impressions carry it.
+            Credits for each conversion sum to 1.
         """
+        extra = [c for c in ("channel",) if c in impressions.columns]
+        out_cols = OUTPUT_COLUMNS + extra
         logger.info(
             f"Running {self.model} attribution: "
-            f"{len(conversions):,} conversions × {len(impressions):,} impressions"
+            f"{len(conversions):,} conversions x {len(impressions):,} impressions"
         )
 
-        results = []
+        imps = impressions[["impression_id", "user_id", "timestamp", "campaign_id", *extra]].rename(
+            columns={"timestamp": "imp_ts"}
+        )
+        convs = conversions[["conversion_id", "user_id", "timestamp", "revenue_usd"]].rename(
+            columns={"timestamp": "conv_ts"}
+        )
+        if imps.empty or convs.empty:
+            return pd.DataFrame(columns=out_cols)
 
-        for _, conversion in conversions.iterrows():
-            # Find impressions for this user within the attribution window
-            user_impressions = impressions[
-                (impressions["user_id"] == conversion["user_id"])
-                & (impressions["timestamp"] <= conversion["timestamp"])
-                & (impressions["timestamp"] >= conversion["timestamp"] - self.attribution_window)
-            ].sort_values("timestamp")
+        imps["imp_ts"] = pd.to_datetime(imps["imp_ts"])
+        convs["conv_ts"] = pd.to_datetime(convs["conv_ts"])
+        j = convs.merge(imps, on="user_id", how="inner")
+        j = j[(j["imp_ts"] <= j["conv_ts"]) & (j["imp_ts"] >= j["conv_ts"] - self.attribution_window)]
+        if j.empty:
+            return pd.DataFrame(columns=out_cols)
 
-            if user_impressions.empty:
-                continue
+        j = j.sort_values(["conversion_id", "imp_ts", "impression_id"], kind="mergesort")
+        groups = j.groupby("conversion_id", sort=False)
+        size = groups["impression_id"].transform("size").to_numpy()
+        rank = groups.cumcount().to_numpy()
 
-            credits = self._compute_credits(user_impressions, conversion)
+        if self.model == "last_touch":
+            credit = (rank == size - 1).astype(float)
+        elif self.model == "first_touch":
+            credit = (rank == 0).astype(float)
+        elif self.model == "linear":
+            credit = 1.0 / size
+        else:
+            age = (j["conv_ts"] - j["imp_ts"]).dt.total_seconds().to_numpy()
+            weight = np.power(0.5, age / (self.decay_half_life * 86400))
+            credit = weight / pd.Series(weight, index=j.index).groupby(j["conversion_id"]).transform("sum").to_numpy()
 
-            for _, imp in user_impressions.iterrows():
-                imp_credit = credits.get(imp["impression_id"], 0.0)
-                if imp_credit > 0:
-                    results.append({
-                        "conversion_id": conversion["conversion_id"],
-                        "impression_id": imp["impression_id"],
-                        "campaign_id": imp["campaign_id"],
-                        "credit": imp_credit,
-                        "revenue_attributed": conversion["revenue_usd"] * imp_credit,
-                        "model": self.model,
-                    })
-
-        result_df = pd.DataFrame(results)
-        logger.info(f"Attribution complete: {len(result_df):,} touchpoint credits assigned")
-        return result_df
-
-    def _compute_credits(
-        self, impressions: pd.DataFrame, conversion: pd.Series
-    ) -> dict:
-        """Compute credit allocation based on the selected model."""
-        model_fn = {
-            "last_touch": self._last_touch,
-            "first_touch": self._first_touch,
-            "linear": self._linear,
-            "time_decay": self._time_decay,
-        }
-
-        if self.model not in model_fn:
-            raise ValueError(f"Unknown model: {self.model}")
-
-        return model_fn[self.model](impressions, conversion)
-
-    def _last_touch(self, impressions: pd.DataFrame, conversion: pd.Series) -> dict:
-        """100% credit to the last impression before conversion."""
-        last_imp = impressions.iloc[-1]
-        return {last_imp["impression_id"]: 1.0}
-
-    def _first_touch(self, impressions: pd.DataFrame, conversion: pd.Series) -> dict:
-        """100% credit to the first impression in the journey."""
-        first_imp = impressions.iloc[0]
-        return {first_imp["impression_id"]: 1.0}
-
-    def _linear(self, impressions: pd.DataFrame, conversion: pd.Series) -> dict:
-        """Equal credit across all touchpoints."""
-        n = len(impressions)
-        credit = 1.0 / n
-        return {row["impression_id"]: credit for _, row in impressions.iterrows()}
-
-    def _time_decay(self, impressions: pd.DataFrame, conversion: pd.Series) -> dict:
-        """Exponentially more credit to impressions closer to conversion.
-
-        Uses a half-life decay: impressions N half-lives ago get 1/2^N credit.
-        """
-        conversion_time = conversion["timestamp"]
-        half_life_seconds = self.decay_half_life * 86400  # days → seconds
-
-        raw_weights = {}
-        for _, imp in impressions.iterrows():
-            time_diff = (conversion_time - imp["timestamp"]).total_seconds()
-            weight = np.exp(-0.693 * time_diff / half_life_seconds)  # ln(2) ≈ 0.693
-            raw_weights[imp["impression_id"]] = weight
-
-        # Normalize to sum to 1.0
-        total = sum(raw_weights.values())
-        return {k: v / total for k, v in raw_weights.items()} if total > 0 else raw_weights
+        j = j.assign(credit=credit)
+        j = j[j["credit"] > 0]
+        j = j.assign(
+            revenue_attributed=j["revenue_usd"] * j["credit"],
+            model=self.model,
+            impression_ts=j["imp_ts"],
+            conversion_ts=j["conv_ts"],
+        )
+        result = j[out_cols].reset_index(drop=True)
+        logger.info(f"Attribution complete: {len(result):,} touchpoint credits assigned")
+        return result

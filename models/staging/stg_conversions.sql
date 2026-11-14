@@ -1,39 +1,16 @@
--- models/staging/stg_conversions.sql
--- Staging: clean and type-cast raw conversion events.
--- Tags late-arriving conversions based on attribution window.
+-- One row per conversion. Upstream re-sends some events, and a re-send can land
+-- in a later partition, so deduplication keeps the first copy received.
 
-with source as (
-    select * from {{ source('ads_raw', 'conversions') }}
-),
-
-deduplicated as (
-    select
-        *,
-        row_number() over (
-            partition by conversion_id
-            order by timestamp asc
-        ) as _row_num
-    from source
-),
-
-cleaned as (
-    select
-        cast(conversion_id as string)               as conversion_id,
-        cast(timestamp as timestamp)                 as conversion_timestamp,
-        cast(user_id as string)                      as user_id,
-        lower(trim(conversion_type))                 as conversion_type,
-        cast(revenue_usd as float64)                 as revenue_usd,
-        cast(attributed_impression_id as string)     as attributed_impression_id,
-        date(timestamp)                              as conversion_date,
-        -- Flag late arrivals: conversion > 30 days after impression
-        case
-            when date_diff(date(timestamp), current_date(), day) > 30
-            then true else false
-        end as is_late_arrival
-    from deduplicated
-    where _row_num = 1
-      and conversion_id is not null
-      and timestamp is not null
-)
-
-select * from cleaned
+select
+    conversion_id,
+    cast("timestamp" as timestamp)                              as conversion_ts,
+    cast("timestamp" as date)                                   as conversion_date,
+    cast(received_at as timestamp)                              as received_ts,
+    user_id,
+    conversion_type,
+    revenue_usd,
+    date_diff('minute', "timestamp", received_at) / 60.0        as arrival_lag_hours,
+    received_at > "timestamp" + interval 24 hour                as is_late_arrival
+from {{ source('lake', 'conversions') }}
+where conversion_id is not null
+qualify row_number() over (partition by conversion_id order by received_at) = 1

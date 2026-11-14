@@ -2,9 +2,10 @@
 test_attribution.py
 Unit tests for the attribution engine.
 """
-import pytest
-import pandas as pd
 from datetime import datetime, timedelta
+
+import pandas as pd
+import pytest
 
 from src.metrics.attribution import AttributionEngine
 

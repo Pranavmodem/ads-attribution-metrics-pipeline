@@ -1,0 +1,43 @@
+version: 2
+
+models:
+  - name: attribution_touchpoints
+    description: >
+      One row per (heuristic model, conversion, credited impression). Built by
+      src.metrics.compare.touchpoint_credits.
+    config:
+      attribution_window_days: "{{ var('attribution_window_days') }}"
+    columns:
+      - name: model
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["last_touch", "first_touch", "linear", "time_decay"]
+      - name: credit
+        data_tests: [not_null]
+      - name: impression_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_impressions')
+                field: impression_id
+
+  - name: attribution_channel_credits
+    description: Channel credit shares for all seven models (sums to 1 per model).
+    config:
+      attribution_window_days: "{{ var('attribution_window_days') }}"
+    columns:
+      - name: model
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["last_touch", "first_touch", "linear", "time_decay", "position_based", "markov_chain", "shapley_value"]
+
+  - name: attribution_ground_truth
+    description: True share of incremental conversions per channel (synthetic data only).
+    config:
+      enabled: "{{ var('synthetic_ground_truth') }}"
+    columns:
+      - name: channel
+        data_tests: [unique, not_null]

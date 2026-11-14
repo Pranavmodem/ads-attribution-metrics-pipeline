@@ -1,0 +1,62 @@
+version: 2
+
+models:
+  - name: stg_impressions
+    description: Ad impressions, one row per impression_id, with cost derived from the clearing CPM.
+    columns:
+      - name: impression_id
+        data_tests: [unique, not_null]
+      - name: impression_ts
+        data_tests: [not_null]
+      - name: user_id
+        data_tests: [not_null]
+      - name: channel
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["Display", "Video", "Social", "Native", "Affiliate", "Email", "Paid Search"]
+      - name: campaign_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_campaigns')
+                field: campaign_id
+      - name: cost_usd
+        data_tests: [not_null]
+
+  - name: stg_clicks
+    description: Clicks, one row per click_id.
+    columns:
+      - name: click_id
+        data_tests: [unique, not_null]
+      - name: impression_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_impressions')
+                field: impression_id
+
+  - name: stg_conversions
+    description: Conversions, one row per conversion_id, flagged when they arrived more than 24 hours late.
+    columns:
+      - name: conversion_id
+        data_tests: [unique, not_null]
+      - name: user_id
+        data_tests: [not_null]
+      - name: revenue_usd
+        data_tests: [not_null]
+      - name: conversion_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["purchase", "store_visit", "signup"]
+
+  - name: stg_campaigns
+    description: Campaign dimension, latest snapshot.
+    columns:
+      - name: campaign_id
+        data_tests: [unique, not_null]
+
+  - name: stg_load_audit
+    description: Loader bookkeeping per entity and partition.

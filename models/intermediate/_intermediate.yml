@@ -1,0 +1,10 @@
+version: 2
+
+models:
+  - name: int_user_journeys
+    description: Each reached user's channel path inside the attribution window, and whether it ended in a conversion.
+    columns:
+      - name: user_id
+        data_tests: [unique, not_null]
+      - name: path
+        data_tests: [not_null]

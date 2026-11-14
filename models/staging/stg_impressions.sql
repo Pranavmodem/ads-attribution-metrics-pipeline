@@ -1,38 +1,20 @@
--- models/staging/stg_impressions.sql
--- Staging: clean, type-cast, and deduplicate raw ad impressions.
--- Deduplication uses impression_id as the natural key.
+-- One row per impression, deduplicated across partitions.
+-- bid_price_usd is the clearing price quoted as a CPM, so one impression costs CPM / 1000.
 
-with source as (
-    select * from {{ source('ads_raw', 'impressions') }}
-),
-
-deduplicated as (
-    select
-        *,
-        row_number() over (
-            partition by impression_id
-            order by timestamp asc
-        ) as _row_num
-    from source
-),
-
-cleaned as (
-    select
-        cast(impression_id as string)       as impression_id,
-        cast(timestamp as timestamp)        as impression_timestamp,
-        cast(campaign_id as string)         as campaign_id,
-        cast(placement_id as string)        as placement_id,
-        cast(creative_id as string)         as creative_id,
-        cast(user_id as string)             as user_id,
-        cast(user_segment_id as string)     as user_segment_id,
-        lower(trim(device_type))            as device_type,
-        upper(trim(geo_country))            as geo_country,
-        cast(bid_price_usd as float64)      as bid_price_usd,
-        date(timestamp)                     as impression_date
-    from deduplicated
-    where _row_num = 1
-      and impression_id is not null
-      and timestamp is not null
-)
-
-select * from cleaned
+select
+    impression_id,
+    cast("timestamp" as timestamp)      as impression_ts,
+    cast("timestamp" as date)           as impression_date,
+    user_id,
+    campaign_id,
+    channel,
+    placement_id,
+    creative_id,
+    user_segment_id,
+    lower(device_type)                  as device_type,
+    upper(geo_country)                  as geo_country,
+    bid_price_usd                       as clearing_cpm_usd,
+    bid_price_usd / 1000.0              as cost_usd
+from {{ source('lake', 'impressions') }}
+where impression_id is not null
+qualify row_number() over (partition by impression_id order by "timestamp") = 1

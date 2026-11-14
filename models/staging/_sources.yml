@@ -1,0 +1,20 @@
+version: 2
+
+sources:
+  - name: lake
+    description: Date-partitioned Parquet written by `python -m src.ingestion`.
+    meta:
+      external_location: "read_parquet('{{ env_var('LAKE_ROOT', 'data/lake') }}/{name}/dt=*/*.parquet', hive_partitioning = true, union_by_name = true)"
+    tables:
+      - name: impressions
+        description: Ad impressions, partitioned by event date.
+      - name: clicks
+        description: Clicks, partitioned by event date.
+      - name: conversions
+        description: Conversions, partitioned by the date they arrived (received_at).
+      - name: campaigns
+        description: Campaign dimension, one full snapshot per load date.
+      - name: load_audit
+        description: One record per entity and partition, written by the loader.
+        meta:
+          external_location: "read_json_auto('{{ env_var('LAKE_ROOT', 'data/lake') }}/_audit/*/*.json')"
